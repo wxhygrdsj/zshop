@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zte.zshop.dao.OrderDao">
+
+    <sql id="orderColumn">
+        id,no,customer_id 'customerId',price,create_date 'createDate'
+
+    </sql>
+    <sql id="orderItemList">
+        o.id,o.no,o.customer_id,o.price,o.create_date,
+            i.order_id 'item.oid',i.id 'item.id',i.num,i.price 'item.price',
+            p.id 'p.id',p.name,p.price 'p.price',p.image
+    </sql>
+    <resultMap id="rsm" type="order">
+        <id property="id" column="id"/>
+        <result property="no" column="no"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="price" column="price"/>
+        <result property="createDate" column="create_date"/>
+        <collection property="orderItemList" ofType="orderItem">
+            <id property="id" column="item.id"/>
+            <result property="num" column="num"/>
+            <result property="price" column="item.price"/>
+            <association property="product" javaType="product">
+                <id property="id" column="p.id"/>
+                <result property="name" column="name"/>
+                <result property="price" column="p.price"/>
+                <result property="image" column="image"/>
+            </association>
+        </collection>
+
+    </resultMap>
+    <resultMap id="rsm1" type="order">
+        <id property="id" column="id"/>
+    </resultMap>
+    <!--
+    public void insertOrder(Order order);
+    -->
+    <insert id="insertOrder" parameterType="order">
+        insert into
+        t_order
+        (no,customer_id,price,create_date)
+        values
+        (#{no},#{customerId},#{price},#{createDate})
+
+    </insert>
+    <!--
+    public Order selectByNo(String orderNo);
+   -->
+    <select id="selectByNo" resultMap="rsm1">
+        select
+            id
+        from
+            t_order
+        where
+            no=#{orderNo}
+
+    </select>
+    <!--
+     public void insertOrderItem(OrderItem orderItem);
+    -->
+    <insert id="insertOrderItem" parameterType="orderItem">
+        insert into
+        t_item
+        (product_id,num,price,order_id)
+        values
+        (#{product.id},#{num},#{price},#{order.id})
+
+    </insert>
+    <!--
+    public List<Order> selectAllOrderByCustomerId(Integer id);
+    -->
+    <select id="selectAllOrderByCustomerId" resultMap="rsm">
+        SELECT
+            <include refid="orderItemList"/>
+        FROM
+            t_order o
+        LEFT JOIN
+            t_item i
+        on
+            o.id=i.order_id
+        LEFT JOIN
+            t_product p
+        on
+            i.product_id=p.id
+        where
+            o.customer_id=#{id}
+        order by o.create_date desc
+    </select>
+    <!--
+    public void deleteOrder(Integer id);
+    -->
+    <delete id="deleteOrder">
+        delete
+        from
+            t_order
+        where
+            id=#{id}
+    </delete>
+    <!--
+    public void deleteOrderItem(Integer id);
+    -->
+    <delete id="deleteOrderItem">
+        delete
+        from
+            t_item
+        where
+            order_id=#{id}
+    </delete>
+
+    <!--
+     public Order selectAllOrderItemByOrderId(Integer id);
+    -->
+    <select id="selectAllOrderItemByOrderId" resultMap="rsm">
+        SELECT
+            <include refid="orderItemList"/>
+        FROM
+            t_order o
+        LEFT JOIN
+            t_item i
+        on
+            o.id=i.order_id
+        LEFT JOIN
+            t_product p
+        on
+            i.product_id=p.id
+        where
+            o.id=#{id}
+
+    </select>
+</mapper>
